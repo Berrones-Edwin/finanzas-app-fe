@@ -1,41 +1,41 @@
 ---
 name: git-best-practices
-description: Aplica el estándar de Conventional Commits, actualización de CHANGELOG.md y verificación de seguridad en .gitignore.
+description: Applies Conventional Commits standards, CHANGELOG.md updates, and security checks in .gitignore.
 ---
 
 # Skill: Git Best Practices & Security Standard
 
-## Descripción
-Aplica estándares profesionales para la gestión del control de versiones, prevención de fuga de datos sensibles y mantenimiento del historial del proyecto.
+## Description
+Applies professional standards for version control management, sensitive data leak prevention, and project history maintenance.
 
-## Reglas de Ejecución
+## Execution Rules
 
-### 1. Control de Versiones e Higiene (.gitignore)
-- **Verificación previa:** Antes de realizar cualquier cambio, commit o staging, revisa que el archivo `.gitignore` contenga y respete la exclusión de:
-  - Variables de entorno (`.env`, `.env.local`, `.env.*`).
-  - Directorios de dependencias (`node_modules/`, `venv/`, `.venv/`, `vendor/`).
-  - Archivos/carpetas temporales y de estado de la IA o editor (`.opencode/`, `.cursor/`, `.tmp/`, `dist/`, `build/`).
-- **Prevención de fugas:** Jamás sugieras, crees o incluyas llaves de API, tokens o credenciales en archivos rastreados por Git.
+### 1. Version Control & Hygiene (.gitignore)
+- **Pre-check:** Before making any changes, commit, or staging, ensure that the `.gitignore` file contains and respects the exclusion of:
+  - Environment variables (`.env`, `.env.local`, `.env.*`).
+  - Dependency directories (`node_modules/`, `venv/`, `.venv/`, `vendor/`,).
+  - Temporary files and AI/editor state folders (`.opencode/`, `.cursor/`, `.tmp/`, `dist/`, `build/`,`.next/`).
+- **Leak Prevention:** Never suggest, create, or include API keys, tokens, or credentials in Git-tracked files.
 
-### 2. Formato de Commits (Conventional Commits)
-Al redactar mensajes de commit o actualizar el historial de cambios, utiliza estrictamente el estándar **Conventional Commits**:
+### 2. Commit Format (Conventional Commits)
+When writing commit messages or updating change history, strictly follow the **Conventional Commits** standard:
 
-#### Formato:
-`<tipo>(<alcance opcional>): <descripción corta en presente/imperativo>`
+#### Format:
+`<type>(<optional scope>): <short description in present/imperative tense>`
 
-#### Tipos permitidos:
-- `feat`: Nueva funcionalidad para el usuario.
-- `fix`: Corrección de un error o bug en el código.
-- `docs`: Cambios únicamente en la documentación.
-- `style`: Cambios que no afectan el significado del código (espacios, formato, punto y coma).
-- `refactor`: Cambio de código que no corrige un error ni añade una función.
-- `test`: Añadir o corregir pruebas existentes.
-- `chore`: Actualizaciones de tareas de construcción, paquetes o herramientas sin cambiar código fuente.
+#### Allowed Types:
+- `feat`: A new feature for the user.
+- `fix`: A bug fix in the code.
+- `docs`: Changes exclusively in documentation.
+- `style`: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc.).
+- `refactor`: A code change that neither fixes a bug nor adds a feature.
+- `test`: Adding missing tests or correcting existing tests.
+- `chore`: Updates to build tasks, package managers, or tools without changing source code.
 
-#### Ejemplos válidos:
+#### Valid Examples:
 - `feat(auth): add JWT authentication flow`
 - `fix(chat): resolve memory leak in message listener`
 - `chore(deps): update opencode dependencies`
 
-### 3. Registro de Cambios (CHANGELOG.md)
-- Al finalizar una característica importante o corrección crítica, actualiza o crea el archivo `CHANGELOG.md` documentando los cambios bajo las secciones: `Added`, `Changed`, `Fixed`, o `Removed`.
+### 3. Changelog Maintenance (CHANGELOG.md)
+- Upon completing a major feature or critical fix, update or create the `CHANGELOG.md` file, documenting changes under the sections: `Added`, `Changed`, `Fixed`, or `Removed`.
