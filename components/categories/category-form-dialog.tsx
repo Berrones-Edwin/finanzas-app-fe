@@ -27,8 +27,8 @@ import {
   useUpdateCategory,
 } from "@/lib/hooks/use-categories"
 import { getApiErrorMessage } from "@/lib/api-client"
-import { validateHexColor, validateName } from "@/lib/validation"
 import type { Category, FlowTypeApi } from "@/lib/types"
+import { categorySchema } from "@/lib/validation"
 
 interface Props {
   open: boolean
@@ -66,20 +66,25 @@ export function CategoryFormDialog({ open, onOpenChange, category }: Props) {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
 
-    const nameErr = validateName(name, 4, "El nombre")
-    const colorErr = validateHexColor(color)
-    if (nameErr || colorErr) {
-      setErrors({ name: nameErr ?? undefined, color: colorErr ?? undefined })
-      return
-    }
-    setErrors({})
-
     const payload = {
       name: name.trim(),
       categoryType: type,
       color: color.toLowerCase(),
     }
 
+    const result = categorySchema.safeParse(payload)
+    if (!result.success) {
+      const nextErrors: { name?: string; categoryType?: string, color?: string } = {};
+
+      for (const issue of result.error.issues) {
+        const field = issue.path?.[0];
+        if (field === "name" && !nextErrors.name) nextErrors.name = issue.message;
+        if (field === "categoryType" && !nextErrors.categoryType) nextErrors.categoryType = issue.message;
+        if (field === "color" && !nextErrors.color) nextErrors.color = issue.message;
+      }
+      setErrors(nextErrors)
+      return
+    }
     try {
       if (isEdit && category) {
         await updateMut.mutateAsync({ id: category.id, payload })

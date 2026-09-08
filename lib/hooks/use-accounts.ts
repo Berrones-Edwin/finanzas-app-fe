@@ -1,13 +1,14 @@
 "use client"
 
 import {
+  keepPreviousData,
   useMutation,
   useQueries,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query"
 import { accountService } from "@/lib/services/account-service"
-import type { AccountPayload } from "@/lib/types"
+import type { AccountPayload, PageParams } from "@/lib/types"
 
 // ============================================================================
 // React Query hooks for the Accounts domain, including balances.
@@ -16,10 +17,11 @@ import type { AccountPayload } from "@/lib/types"
 const KEY = "accounts"
 const BALANCE_KEY = "account-balance"
 
-export function useAccounts() {
+export function useAccounts(params: PageParams) {
   return useQuery({
-    queryKey: [KEY],
-    queryFn: () => accountService.list(),
+    queryKey:  [KEY, params.page ?? 0, params.size ?? 10],
+    queryFn: () => accountService.list(params),
+    placeholderData:keepPreviousData
   })
 }
 

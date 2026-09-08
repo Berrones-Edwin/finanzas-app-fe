@@ -22,7 +22,7 @@ export const tokenStorage = {
   },
   set(tokens: AuthTokens): void {
     if (!isBrowser) return
-    window.localStorage.setItem(ACCESS_KEY, tokens.accessToken)
+    window.localStorage.setItem(ACCESS_KEY, tokens.token)
     window.localStorage.setItem(REFRESH_KEY, tokens.refreshToken)
   },
   clear(): void {

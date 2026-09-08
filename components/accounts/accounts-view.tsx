@@ -33,24 +33,30 @@ import {
 import { getApiErrorMessage } from "@/lib/api-client"
 import { formatCurrency } from "@/lib/format"
 import type { Account, AccountType } from "@/lib/types"
+import { Pagination } from "../shared/pagination"
 
 const TYPE_META: Record<
   AccountType,
   { label: string; icon: typeof Banknote }
 > = {
-  cash: { label: "Efectivo", icon: Banknote },
-  bank: { label: "Banco", icon: Landmark },
-  credit: { label: "Crédito", icon: CreditCard },
-  savings: { label: "Ahorro", icon: PiggyBank },
+  CASH: { label: "Efectivo", icon: Banknote },
+  BANK: { label: "Banco", icon: Landmark },
+  CREDIT: { label: "Crédito", icon: CreditCard },
+  SAVINGS: { label: "Ahorro", icon: PiggyBank },
 }
+const PAGE_SIZE = 10
 
 export function AccountsView() {
-  const { data: accounts, isLoading, isError, error } = useAccounts()
+  const [page, setPage] = useState(0)
+  const { data, isLoading, isError, error } = useAccounts({
+    page,
+    size:PAGE_SIZE
+  })
   const deactivateMut = useDeactivateAccount()
 
-  const ids = (accounts ?? []).map((a) => a.id)
-  const { byId: balances, isLoading: balancesLoading } =
-    useAccountBalances(ids)
+  // const ids = accounts?.map((a) => a.id)
+  // const { byId: balances, isLoading: balancesLoading } =
+  //   useAccountBalances(ids)
 
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Account | null>(null)
@@ -76,6 +82,8 @@ export function AccountsView() {
       toast.error(getApiErrorMessage(err))
     }
   }
+
+  const accounts = data?.content ?? []
 
   return (
     <>
@@ -124,9 +132,9 @@ export function AccountsView() {
       {!isLoading && accounts && accounts.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {accounts.map((account) => {
-            const meta = TYPE_META[account.type]
+            const meta = TYPE_META[account.accountType]
             const Icon = meta.icon
-            const balance = balances.get(account.id)
+            // const balance = balances.get(account.id)
             return (
               <Card key={account.id} className={account.isActive ? "" : "opacity-60"}>
                 <CardHeader>
@@ -174,7 +182,7 @@ export function AccountsView() {
                     </DropdownMenu>
                   </div>
                 </CardHeader>
-                <CardContent>
+                {/* <CardContent>
                   <p className="text-xs text-muted-foreground">Balance actual</p>
                   {balancesLoading && balance === undefined ? (
                     <Skeleton className="mt-1 h-8 w-28" />
@@ -190,13 +198,24 @@ export function AccountsView() {
                       Inactiva
                     </Badge>
                   )}
-                </CardContent>
+                </CardContent> */}
               </Card>
             )
           })}
         </div>
       )}
 
+
+      {data && data.totalPages > 0 && (
+        <Pagination
+          page={data.number}
+          totalPages={data.totalPages}
+          total={data.total}
+          isFirst={data.first}
+          isLast={data.last}
+          onChange={setPage}
+        />
+      )}
       <AccountFormDialog
         open={formOpen}
         onOpenChange={setFormOpen}

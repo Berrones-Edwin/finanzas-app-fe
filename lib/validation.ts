@@ -1,44 +1,62 @@
-// ============================================================================
-// Lightweight, dependency-free validation helpers shared across forms.
-// Each returns an error string, or null when the value is valid.
-// ============================================================================
 
-export function validateEmail(value: string): string | null {
-  const v = value.trim()
-  if (!v) return "El correo es obligatorio."
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!re.test(v)) return "Ingresa un correo válido."
-  return null
-}
 
-export function validatePassword(value: string): string | null {
-  if (!value) return "La contraseña es obligatoria."
-  if (value.length < 8) return "La contraseña debe tener al menos 8 caracteres."
-  return null
-}
+import * as z from "zod"
 
-export function validateName(
-  value: string,
-  min = 4,
-  label = "El nombre",
-): string | null {
-  const v = value.trim()
-  if (!v) return `${label} es obligatorio.`
-  if (v.length < min) return `${label} debe tener al menos ${min} caracteres.`
-  return null
-}
+const MIN_LENGTH = 4;
+const HEX_PATTERN = /^#([0-9a-fA-F]{6})$/
+const HexColorSchema = z
+  .string()
+  .refine((val) => HEX_PATTERN.test(val), { error: "Invalid hex color" });
 
-const HEX_RE = /^#([0-9a-fA-F]{6})$/
-export function validateHexColor(value: string): string | null {
-  if (!value) return "El color es obligatorio."
-  if (!HEX_RE.test(value)) return "Usa un color hexadecimal válido (#RRGGBB)."
-  return null
-}
 
-export function validateAmount(value: string): string | null {
-  if (!value.trim()) return "El monto es obligatorio."
-  const num = Number(value)
-  if (Number.isNaN(num)) return "El monto debe ser un número."
-  if (num <= 0) return "El monto debe ser mayor que cero."
-  return null
+const passwordSchema = z
+  .string()
+  .min(8)
+
+const passwordRegisterSchema = z
+  .string()
+  .min(8)
+  .refine((val) => /[A-Z]/.test(val), { error: "Must include an uppercase letter" })
+  .refine((val) => /[a-z]/.test(val), { error: "Must include a lowercase letter" })
+  .refine((val) => /[0-9]/.test(val), { error: "Must include a number" })
+  .refine((val) => /[^A-Za-z0-9]/.test(val), { error: "Must include a special character" });
+export const registerSchema = z.object({
+  name: z.string().min(MIN_LENGTH),
+  lastname: z.string(),
+  email: z.email(),
+  password: passwordRegisterSchema,
+})
+
+export const loginSchema = z.object({
+  email: z.email(),
+  password: passwordSchema,
+})
+
+export const accountSchema = z.object({
+  name: z.string().min(MIN_LENGTH),
+  color: HexColorSchema,
+  balance: z.number().positive({message:"Balance must be greather than zero"}),
+  type: z.string(),
+  currency: z.string().min(3).max(3)
+})
+
+export const categorySchema = z.object({
+  name: z.string().min(MIN_LENGTH),
+  color: HexColorSchema,
+})
+
+
+export function extractErrors(
+  result: {
+    error: z.ZodError
+  },
+): Record<string, string> {
+  const errors: Record<string, string> = {}
+  for (const issue of result.error.issues) {
+    const key = issue.path[0]
+    if (typeof key === "string" && !(key in errors)) {
+      errors[key] = issue.message
+    }
+  }
+  return errors
 }

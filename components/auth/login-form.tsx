@@ -11,7 +11,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/components/providers/auth-provider"
 import { getApiErrorMessage } from "@/lib/api-client"
-import { validateEmail, validatePassword } from "@/lib/validation"
+import { loginSchema } from "@/lib/validation"
+import * as z from "zod"
+
 
 export function LoginForm() {
   const router = useRouter()
@@ -27,13 +29,25 @@ export function LoginForm() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
 
-    const emailErr = validateEmail(email)
-    const passErr = validatePassword(password)
-    if (emailErr || passErr) {
-      setErrors({ email: emailErr ?? undefined, password: passErr ?? undefined })
-      return
+    const payload = {
+      email, password
     }
-    setErrors({})
+
+    const result = loginSchema.safeParse(payload)
+
+    if (!result.success) {
+      const nextErrors: { email?: string; password?: string } = {};
+
+      for (const issue of result.error.issues) {
+        const field = issue.path?.[0];
+        if (field === "email" && !nextErrors.email) nextErrors.email = issue.message;
+        if (field === "password" && !nextErrors.password) nextErrors.password = issue.message;
+      }
+
+      setErrors(nextErrors);
+      return;
+    }
+    
     setSubmitting(true)
     try {
       await login({ email: email.trim(), password })

@@ -46,7 +46,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const initials =
-    user?.name
+    user?.fisrtName
       ?.split(" ")
       .map((p) => p[0])
       .slice(0, 2)
@@ -89,7 +89,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         {navContent}
         <SidebarFooter
-          name={user?.name ?? ""}
+          name={user?.fisrtName ?? ""}
           email={user?.email ?? ""}
           initials={initials}
           onLogout={handleLogout}
@@ -123,7 +123,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             {navContent}
             <SidebarFooter
-              name={user?.name ?? ""}
+              name={user?.fisrtName ?? ""}
               email={user?.email ?? ""}
               initials={initials}
               onLogout={handleLogout}
@@ -145,7 +145,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Button>
           <div className="ml-auto flex items-center gap-3">
             <div className="hidden text-right sm:block">
-              <p className="text-sm font-medium leading-tight">{user?.name}</p>
+              <p className="text-sm font-medium leading-tight">{user?.fisrtName}</p>
               <p className="text-xs text-muted-foreground">{user?.currency}</p>
             </div>
             <span className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">

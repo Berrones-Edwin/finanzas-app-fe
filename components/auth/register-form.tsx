@@ -18,16 +18,14 @@ import {
 } from "@/components/ui/select"
 import { useAuth } from "@/components/providers/auth-provider"
 import { getApiErrorMessage } from "@/lib/api-client"
-import {
-  validateEmail,
-  validateName,
-  validatePassword,
-} from "@/lib/validation"
+import { registerSchema } from "@/lib/validation"
+import { log } from "node:console"
 
 const CURRENCIES = ["MXN", "USD", "EUR", "GBP", "CAD", "ARS", "COP"]
 
 interface FieldErrors {
   name?: string
+  lastName?: string
   email?: string
   password?: string
 }
@@ -37,6 +35,7 @@ export function RegisterForm() {
   const { register } = useAuth()
 
   const [name, setName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [currency, setCurrency] = useState("MXN")
@@ -46,28 +45,43 @@ export function RegisterForm() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
 
-    const nameErr = validateName(name, 4, "El nombre")
-    const emailErr = validateEmail(email)
-    const passErr = validatePassword(password)
-    if (nameErr || emailErr || passErr) {
-      setErrors({
-        name: nameErr ?? undefined,
-        email: emailErr ?? undefined,
-        password: passErr ?? undefined,
-      })
-      return
+    const payload = {
+      name, email, password,lastname:lastName
     }
-    setErrors({})
+
+    const result = registerSchema.safeParse(payload);
+    console.log({result})
+
+    if (!result.success) {
+
+      const nextErrors: { email?: string; password?: string; name?: string; lastname?: string } = {};
+
+      for (const issue of result.error.issues) {
+        const field = issue.path?.[0];
+        if (field === "email" && !nextErrors.email) nextErrors.email = issue.message;
+        if (field === "password" && !nextErrors.password) nextErrors.password = issue.message;
+        if (field === "name" && !nextErrors.name) nextErrors.name = issue.message;
+        if (field === "lastname" && !nextErrors.lastname) nextErrors.lastname = issue.message;
+      }
+
+      setErrors(nextErrors);
+      return;
+    }
+
     setSubmitting(true)
     try {
-      await register({
-        name: name.trim(),
+     const response = await register({
+        firstName: name.trim(),
+        lastName: lastName,
         email: email.trim(),
         password,
-        currency,
+        preferredCurrency: currency,
       })
+
+      console.log({response,payload})
+
       toast.success("Cuenta creada correctamente.")
-      router.replace("/dashboard")
+      router.push("/login")
     } catch (error) {
       toast.error(getApiErrorMessage(error, "No se pudo crear la cuenta."))
     } finally {
@@ -93,18 +107,40 @@ export function RegisterForm() {
     >
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="name">Nombre completo</Label>
-          <Input
-            id="name"
-            autoComplete="name"
-            placeholder="Juan Pérez"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            aria-invalid={!!errors.name}
-            disabled={submitting}
-          />
+
+          <Label htmlFor="name" className='w-100 '>Nombre completo</Label>
+
+          <div
+            className='grid grid-cols-2 gap-2'
+          >
+
+            <Input
+              id="name"
+              autoComplete="name"
+              placeholder="Juan"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              aria-invalid={!!errors.name}
+              disabled={submitting}
+
+            />
+            <Input
+              id="lastName"
+              autoComplete="lastName"
+              placeholder="Pérez"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              aria-invalid={!!errors.lastName}
+              disabled={submitting}
+
+            />
+          </div>
           {errors.name && (
             <p className="text-sm text-destructive">{errors.name}</p>
+          )}
+
+          {errors.lastName && (
+            <p className="text-sm text-destructive">{errors.lastName}</p>
           )}
         </div>
 

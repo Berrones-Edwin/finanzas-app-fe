@@ -2,7 +2,7 @@
 // Domain types — mirror the Spring Boot API contracts.
 // ============================================================================
 
-export type AccountType = "cash" | "bank" | "credit" | "savings"
+export type AccountType = "CASH" | "BANK" | "CREDIT" | "SAVINGS"
 export type FlowType = "income" | "expense"
 /** The backend serializes enums in UPPERCASE (e.g. "EXPENSE"). */
 export type FlowTypeApi = "INCOME" | "EXPENSE"
@@ -12,8 +12,8 @@ export type FlowTypeApi = "INCOME" | "EXPENSE"
 // ---------------------------------------------------------------------------
 
 export interface AuthTokens {
-  accessToken: string
-  refreshToken?: string
+  token: string
+  refreshToken: string
 }
 
 export interface LoginPayload {
@@ -22,10 +22,15 @@ export interface LoginPayload {
 }
 
 export interface RegisterPayload {
-  name: string
+  firstName: string
+  lastName: string
   email: string
   password: string
-  currency?: string
+  preferredCurrency?: string
+}
+
+export interface LogoutPayload {
+  token: string
 }
 
 export interface User {
@@ -45,11 +50,13 @@ export interface User {
 export interface Account {
   id: number
   name: string
-  type: AccountType
+  accountType: AccountType
   currency: string
+  balance?: number
   color: string
   isActive: boolean
   createdAt?: string
+
 }
 
 export interface AccountBalance {
@@ -62,9 +69,10 @@ export interface AccountBalance {
 
 export interface AccountPayload {
   name: string
-  type: AccountType
+  accountType: AccountType
   currency: string
   color: string
+  balance:number
 }
 
 // ---------------------------------------------------------------------------
