@@ -27,14 +27,14 @@ import {
   useUpdateAccount,
 } from "@/lib/hooks/use-accounts"
 import { getApiErrorMessage } from "@/lib/api-client"
-import { validateHexColor, validateName } from "@/lib/validation"
 import type { Account, AccountType } from "@/lib/types"
+import { accountSchema } from '../../lib/validation'
 
 const ACCOUNT_TYPES: { value: AccountType; label: string }[] = [
-  { value: "cash", label: "Efectivo" },
-  { value: "bank", label: "Banco" },
-  { value: "credit", label: "Crédito" },
-  { value: "savings", label: "Ahorro" },
+  { value: "CASH", label: "Efectivo" },
+  { value: "BANK", label: "Banco" },
+  { value: "CREDIT", label: "Crédito" },
+  { value: "SAVINGS", label: "Ahorro" },
 ]
 
 const CURRENCIES = ["MXN", "USD", "EUR", "GBP", "CAD", "ARS", "COP"]
@@ -48,6 +48,9 @@ interface Props {
 interface FieldErrors {
   name?: string
   color?: string
+  balance?: string
+  type?: string
+  currency?: string
 }
 
 export function AccountFormDialog({ open, onOpenChange, account }: Props) {
@@ -57,17 +60,19 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
   const submitting = createMut.isPending || updateMut.isPending
 
   const [name, setName] = useState("")
-  const [type, setType] = useState<AccountType>("bank")
+  const [type, setType] = useState<AccountType>("CASH")
   const [currency, setCurrency] = useState("MXN")
   const [color, setColor] = useState("#0d9488")
+  const [balance, setBalance] = useState(0)
   const [errors, setErrors] = useState<FieldErrors>({})
 
   useEffect(() => {
     if (open) {
       setName(account?.name ?? "")
-      setType(account?.type ?? "bank")
+      setType(account?.accountType ?? "BANK")
       setCurrency(account?.currency ?? "MXN")
       setColor(account?.color ?? "#0d9488")
+      setBalance(account?.balance ?? 0)
       setErrors({})
     }
   }, [open, account])
@@ -75,27 +80,42 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
 
-    const nameErr = validateName(name, 4, "El nombre")
-    const colorErr = validateHexColor(color)
-    if (nameErr || colorErr) {
-      setErrors({ name: nameErr ?? undefined, color: colorErr ?? undefined })
-      return
-    }
-    setErrors({})
-
     const payload = {
       name: name.trim(),
-      type,
+       type,
+      balance,
       currency,
       color: color.toLowerCase(),
     }
 
+
+    const result = accountSchema.safeParse(payload)
+
+    if (!result.success) {
+      const nextErrors: { name?: string; type?: string, balance?: string, currency?: string, color?: string } = {};
+
+      for (const issue of result.error.issues) {
+        const field = issue.path?.[0];
+        if (field === "name" && !nextErrors.name) nextErrors.name = issue.message;
+        if (field === "type" && !nextErrors.type) nextErrors.type = issue.message;
+        if (field === "currency" && !nextErrors.currency) nextErrors.currency = issue.message;
+        if (field === "color" && !nextErrors.color) nextErrors.color = issue.message;
+        if (field === "balance" && !nextErrors.balance) nextErrors.balance = issue.message;
+      }
+
+      setErrors(nextErrors);
+      console.log({ payload, errors })
+      return;
+    }
+
+
+    console.log({ payload, errors })
     try {
       if (isEdit && account) {
         await updateMut.mutateAsync({ id: account.id, payload })
         toast.success("Cuenta actualizada.")
       } else {
-        await createMut.mutateAsync(payload)
+        await createMut.mutateAsync({...payload,accountType:payload.type})
         toast.success("Cuenta creada.")
       }
       onOpenChange(false)
@@ -124,11 +144,25 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ej. Nómina, Efectivo…"
-              aria-invalid={!!errors.name}
+              aria-invalid={!!errors.balance}
               disabled={submitting}
             />
             {errors.name && (
               <p className="text-sm text-destructive">{errors.name}</p>
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="acc-balance">Balance</Label>
+            <Input
+              id="acc-balance"
+              value={balance}
+              onChange={(e) => setBalance(Number(e.target.value))}
+              placeholder="00.00$"
+              aria-invalid={!!errors.balance}
+              disabled={submitting}
+            />
+            {errors.balance && (
+              <p className="text-sm text-destructive">{errors.balance}</p>
             )}
           </div>
 
@@ -150,6 +184,9 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
                   ))}
                 </SelectContent>
               </Select>
+              {errors.type && (
+                <p className="text-sm text-destructive">{errors.type}</p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -166,7 +203,12 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
                   ))}
                 </SelectContent>
               </Select>
+               {errors.currency && (
+                <p className="text-sm text-destructive">{errors.currency}</p>
+              )}
             </div>
+
+
           </div>
 
           <ColorField

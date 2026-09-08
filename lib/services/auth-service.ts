@@ -2,6 +2,7 @@ import { api } from "@/lib/api-client"
 import type {
   AuthTokens,
   LoginPayload,
+  LogoutPayload,
   RegisterPayload,
   User,
 } from "@/lib/types"
@@ -22,8 +23,8 @@ export const authService = {
     return data
   },
 
-  async logout(): Promise<void> {
-    await api.post("/auth/logout")
+  async logout(payload: LogoutPayload): Promise<void> {
+    await api.post("/auth/logout", payload)
   },
 
   async me(): Promise<User> {
@@ -31,7 +32,7 @@ export const authService = {
     return data
   },
 
-  async updateProfile(payload: Partial<Pick<User, "name" | "currency">>) {
+  async updateProfile(payload: Partial<Pick<User, "fisrtName" | "currency">>) {
     const { data } = await api.patch<User>("/users/me", payload)
     return data
   },

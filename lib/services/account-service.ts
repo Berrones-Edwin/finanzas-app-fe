@@ -1,5 +1,5 @@
 import { api } from "@/lib/api-client"
-import type { Account, AccountBalance, AccountPayload } from "@/lib/types"
+import type { Account, AccountBalance, AccountPayload, Page, PageParams } from "@/lib/types"
 
 // ============================================================================
 // Account service — /api/accounts.
@@ -7,8 +7,10 @@ import type { Account, AccountBalance, AccountPayload } from "@/lib/types"
 // ============================================================================
 
 export const accountService = {
-  async list(): Promise<Account[]> {
-    const { data } = await api.get<Account[]>("/accounts")
+  async list(params: PageParams = {}): Promise<Page<Account>> {
+    const { data } = await api.get<Page<Account>>("/accounts",{
+      params: { page: params.page ?? 0, size: params.size ?? 10 },
+    })
     return data
   },
 

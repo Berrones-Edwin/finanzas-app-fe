@@ -18,7 +18,7 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader
-        title={`Hola, ${user?.name?.split(" ")[0] ?? ""}`}
+        title={`Hola, ${user?.fisrtName?.split(" ")[0] ?? ""}`}
         description="Este es el resumen de tu actividad financiera."
       />
 

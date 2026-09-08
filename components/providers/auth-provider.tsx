@@ -15,6 +15,7 @@ import { authService } from "@/lib/services/auth-service"
 import type {
   AuthTokens,
   LoginPayload,
+  LogoutPayload,
   RegisterPayload,
   User,
 } from "@/lib/types"
@@ -86,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (payload: LoginPayload) => {
       const tokens = await authService.login(payload)
+      console.log({tokens})
       await persistAndLoad(tokens)
     },
     [persistAndLoad],
@@ -93,15 +95,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(
     async (payload: RegisterPayload) => {
-      const tokens = await authService.register(payload)
-      await persistAndLoad(tokens)
-    },
+      const tokens = await authService.register(payload)    },
     [persistAndLoad],
   )
 
   const logout = useCallback(async () => {
     try {
-      await authService.logout()
+      const accessToken = tokenStorage.getAccess() || "";
+      await authService.logout({ token: accessToken });
     } catch {
       // Even if the server call fails we clear the local session.
     } finally {
