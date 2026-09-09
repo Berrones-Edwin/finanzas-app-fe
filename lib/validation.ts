@@ -25,6 +25,7 @@ export const registerSchema = z.object({
   lastname: z.string(),
   email: z.email(),
   password: passwordRegisterSchema,
+  currency:z.string().min(3).max(3)
 })
 
 export const loginSchema = z.object({
@@ -36,13 +37,14 @@ export const accountSchema = z.object({
   name: z.string().min(MIN_LENGTH),
   color: HexColorSchema,
   balance: z.number().positive({message:"Balance must be greather than zero"}),
-  type: z.string(),
+  type: z.enum(["CASH", "BANK", "CREDIT", "SAVINGS"] as const),
   currency: z.string().min(3).max(3)
 })
 
 export const categorySchema = z.object({
   name: z.string().min(MIN_LENGTH),
   color: HexColorSchema,
+  type:z.enum(["INCOME","EXPENSE"])
 })
 
 

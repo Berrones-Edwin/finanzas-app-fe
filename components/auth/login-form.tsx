@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react"
 import Link from "next/link"
+import { useForm, SubmitHandler } from "react-hook-form"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
@@ -13,51 +14,26 @@ import { useAuth } from "@/components/providers/auth-provider"
 import { getApiErrorMessage } from "@/lib/api-client"
 import { loginSchema } from "@/lib/validation"
 import * as z from "zod"
+import { zodResolver } from '@hookform/resolvers/zod'
 
-
+type LoginFormData = z.infer<typeof loginSchema>
 export function LoginForm() {
   const router = useRouter()
   const { login } = useAuth()
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" }
+  })
 
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
-    {},
-  )
-  const [submitting, setSubmitting] = useState(false)
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-
-    const payload = {
-      email, password
-    }
-
-    const result = loginSchema.safeParse(payload)
-
-    if (!result.success) {
-      const nextErrors: { email?: string; password?: string } = {};
-
-      for (const issue of result.error.issues) {
-        const field = issue.path?.[0];
-        if (field === "email" && !nextErrors.email) nextErrors.email = issue.message;
-        if (field === "password" && !nextErrors.password) nextErrors.password = issue.message;
-      }
-
-      setErrors(nextErrors);
-      return;
-    }
+  async function onSubmit(data:LoginFormData) {
     
-    setSubmitting(true)
     try {
-      await login({ email: email.trim(), password })
+      await login({ email: data.email, password:data.password })
       toast.success("Sesión iniciada correctamente.")
       router.replace("/dashboard")
     } catch (error) {
       toast.error(getApiErrorMessage(error, "No se pudo iniciar sesión."))
-    } finally {
-      setSubmitting(false)
-    }
+    } 
   }
 
   return (
@@ -76,7 +52,7 @@ export function LoginForm() {
         </>
       }
     >
-      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <Label htmlFor="email">Correo electrónico</Label>
           <Input
@@ -84,13 +60,12 @@ export function LoginForm() {
             type="email"
             autoComplete="email"
             placeholder="tu@correo.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            {...register("email")}
             aria-invalid={!!errors.email}
-            disabled={submitting}
+            disabled={isSubmitting}
           />
           {errors.email && (
-            <p className="text-sm text-destructive">{errors.email}</p>
+            <p className="text-sm text-destructive">{errors.email.message}</p>
           )}
         </div>
 
@@ -101,18 +76,17 @@ export function LoginForm() {
             type="password"
             autoComplete="current-password"
             placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            {...register("password")}
             aria-invalid={!!errors.password}
-            disabled={submitting}
+            disabled={isSubmitting}
           />
           {errors.password && (
-            <p className="text-sm text-destructive">{errors.password}</p>
+            <p className="text-sm text-destructive">{errors.password.message}</p>
           )}
         </div>
 
-        <Button type="submit" className="mt-2 w-full" disabled={submitting}>
-          {submitting && <Loader2 className="size-4 animate-spin" />}
+        <Button type="submit" className="mt-2 w-full" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="size-4 animate-spin" />}
           Iniciar sesión
         </Button>
       </form>

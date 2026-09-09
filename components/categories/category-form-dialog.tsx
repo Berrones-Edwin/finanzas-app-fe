@@ -29,6 +29,9 @@ import {
 import { getApiErrorMessage } from "@/lib/api-client"
 import type { Category, FlowTypeApi } from "@/lib/types"
 import { categorySchema } from "@/lib/validation"
+import { Controller, useForm } from 'react-hook-form'
+import * as z from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 interface Props {
   open: boolean
@@ -37,60 +40,51 @@ interface Props {
   category?: Category | null
 }
 
-interface FieldErrors {
-  name?: string
-  color?: string
+type CategoryFormData = z.infer<typeof categorySchema>
+
+const defaultValues: CategoryFormData = {
+  name: "", color: "#0d9488", type: "EXPENSE"
 }
 
 export function CategoryFormDialog({ open, onOpenChange, category }: Props) {
   const isEdit = !!category
   const createMut = useCreateCategory()
   const updateMut = useUpdateCategory()
-  const submitting = createMut.isPending || updateMut.isPending
+  const isSubmitting = createMut.isPending || updateMut.isPending
+  const { register, handleSubmit, control, reset, formState: { errors } } = useForm<CategoryFormData>({
+    resolver: zodResolver(categorySchema),
+    defaultValues
+  })
 
-  const [name, setName] = useState("")
-  const [type, setType] = useState<FlowTypeApi>("EXPENSE")
-  const [color, setColor] = useState("#0d9488")
-  const [errors, setErrors] = useState<FieldErrors>({})
-
-  // Sync local state whenever the dialog opens or the target category changes.
   useEffect(() => {
     if (open) {
-      setName(category?.name ?? "")
-      setType(category?.categoryType ?? "EXPENSE")
-      setColor(category?.color ?? "#0d9488")
-      setErrors({})
-    }
-  }, [open, category])
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-
-    const payload = {
-      name: name.trim(),
-      categoryType: type,
-      color: color.toLowerCase(),
-    }
-
-    const result = categorySchema.safeParse(payload)
-    if (!result.success) {
-      const nextErrors: { name?: string; categoryType?: string, color?: string } = {};
-
-      for (const issue of result.error.issues) {
-        const field = issue.path?.[0];
-        if (field === "name" && !nextErrors.name) nextErrors.name = issue.message;
-        if (field === "categoryType" && !nextErrors.categoryType) nextErrors.categoryType = issue.message;
-        if (field === "color" && !nextErrors.color) nextErrors.color = issue.message;
+      if (category) {
+        reset({
+          name: category.name,
+          color: category.color,
+          type: category.categoryType
+        })
+      } else {
+        reset(defaultValues)
       }
-      setErrors(nextErrors)
-      return
     }
+  }, [open, category, reset])
+
+  async function onSubmit(data: CategoryFormData) {
+    const payload = {
+      name: data.name.trim(),
+      type: data.type,
+      color: data.color.toLowerCase(),
+    }
+
+
     try {
       if (isEdit && category) {
-        await updateMut.mutateAsync({ id: category.id, payload })
+        const payloadEdit = { ...payload, categoryType: payload.type }
+        await updateMut.mutateAsync({ id: category.id, payload: payloadEdit })
         toast.success("Categoría actualizada.")
       } else {
-        await createMut.mutateAsync(payload)
+        await createMut.mutateAsync({ ...payload, categoryType: payload.type })
         toast.success("Categoría creada.")
       }
       onOpenChange(false)
@@ -113,44 +107,55 @@ export function CategoryFormDialog({ open, onOpenChange, category }: Props) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="cat-name">Nombre</Label>
             <Input
               id="cat-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              {...register("name")}
               placeholder="Ej. Comida, Salario…"
               aria-invalid={!!errors.name}
-              disabled={submitting}
+              disabled={isSubmitting}
             />
             {errors.name && (
-              <p className="text-sm text-destructive">{errors.name}</p>
+              <p className="text-sm text-destructive">{errors.name.message}</p>
             )}
           </div>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="cat-type">Tipo</Label>
-            <Select
-              value={type}
-              onValueChange={(v) => setType(v as FlowTypeApi)}
-            >
-              <SelectTrigger id="cat-type" disabled={submitting}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="INCOME">Ingreso</SelectItem>
-                <SelectItem value="EXPENSE">Gasto</SelectItem>
-              </SelectContent>
-            </Select>
+            <Controller
+              name="type"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger id="cat-type" disabled={isSubmitting}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="INCOME">Ingreso</SelectItem>
+                    <SelectItem value="EXPENSE">Gasto</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
 
-          <ColorField
-            id="cat-color"
-            value={color}
-            onChange={setColor}
-            error={errors.color}
-            disabled={submitting}
+          <Controller
+            name="color"
+            control={control}
+            render={({ field }) => (
+              <ColorField
+                id="acc-color"
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.color?.message}
+                disabled={isSubmitting}
+              />
+            )}
           />
 
           <DialogFooter className="mt-2">
@@ -158,12 +163,12 @@ export function CategoryFormDialog({ open, onOpenChange, category }: Props) {
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={submitting}
+              disabled={isSubmitting}
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={submitting}>
-              {submitting && <Loader2 className="size-4 animate-spin" />}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="size-4 animate-spin" />}
               {isEdit ? "Guardar cambios" : "Crear categoría"}
             </Button>
           </DialogFooter>
