@@ -3,8 +3,6 @@
 // ============================================================================
 
 export type AccountType = "CASH" | "BANK" | "CREDIT" | "SAVINGS"
-export type FlowType = "income" | "expense"
-/** The backend serializes enums in UPPERCASE (e.g. "EXPENSE"). */
 export type FlowTypeApi = "INCOME" | "EXPENSE"
 
 // ---------------------------------------------------------------------------

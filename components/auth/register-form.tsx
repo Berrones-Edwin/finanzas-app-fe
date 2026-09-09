@@ -19,73 +19,43 @@ import {
 import { useAuth } from "@/components/providers/auth-provider"
 import { getApiErrorMessage } from "@/lib/api-client"
 import { registerSchema } from "@/lib/validation"
-import { log } from "node:console"
+import * as z from "zod"
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Controller, useForm } from "react-hook-form"
+
 
 const CURRENCIES = ["MXN", "USD", "EUR", "GBP", "CAD", "ARS", "COP"]
 
-interface FieldErrors {
-  name?: string
-  lastName?: string
-  email?: string
-  password?: string
-}
+type RegisterFormData = z.infer<typeof registerSchema>
 
 export function RegisterForm() {
   const router = useRouter()
-  const { register } = useAuth()
-
-  const [name, setName] = useState("")
-  const [lastName, setLastName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [currency, setCurrency] = useState("MXN")
-  const [errors, setErrors] = useState<FieldErrors>({})
-  const [submitting, setSubmitting] = useState(false)
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-
-    const payload = {
-      name, email, password,lastname:lastName
+  const { register: registerUser } = useAuth()
+  const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: "",
+      lastname: "",
+      email: "",
+      password: "",
+      currency: "MXN"
     }
+  })
 
-    const result = registerSchema.safeParse(payload);
-    console.log({result})
+  async function onSubmit(data: RegisterFormData) {
 
-    if (!result.success) {
-
-      const nextErrors: { email?: string; password?: string; name?: string; lastname?: string } = {};
-
-      for (const issue of result.error.issues) {
-        const field = issue.path?.[0];
-        if (field === "email" && !nextErrors.email) nextErrors.email = issue.message;
-        if (field === "password" && !nextErrors.password) nextErrors.password = issue.message;
-        if (field === "name" && !nextErrors.name) nextErrors.name = issue.message;
-        if (field === "lastname" && !nextErrors.lastname) nextErrors.lastname = issue.message;
-      }
-
-      setErrors(nextErrors);
-      return;
-    }
-
-    setSubmitting(true)
     try {
-     const response = await register({
-        firstName: name.trim(),
-        lastName: lastName,
-        email: email.trim(),
-        password,
-        preferredCurrency: currency,
+      await registerUser({
+        firstName: data.name.trim(),
+        lastName: data.lastname.trim(),
+        email: data.email.trim(),
+        password: data.password,
+        preferredCurrency: data.currency,
       })
-
-      console.log({response,payload})
-
       toast.success("Cuenta creada correctamente.")
       router.push("/login")
     } catch (error) {
       toast.error(getApiErrorMessage(error, "No se pudo crear la cuenta."))
-    } finally {
-      setSubmitting(false)
     }
   }
 
@@ -105,7 +75,7 @@ export function RegisterForm() {
         </>
       }
     >
-      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
 
           <Label htmlFor="name" className='w-100 '>Nombre completo</Label>
@@ -118,29 +88,27 @@ export function RegisterForm() {
               id="name"
               autoComplete="name"
               placeholder="Juan"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              {...register("name")}
               aria-invalid={!!errors.name}
-              disabled={submitting}
+              disabled={isSubmitting}
 
             />
             <Input
               id="lastName"
               autoComplete="lastName"
               placeholder="Pérez"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              aria-invalid={!!errors.lastName}
-              disabled={submitting}
+              {...register("lastname")}
+              aria-invalid={!!errors.lastname}
+              disabled={isSubmitting}
 
             />
           </div>
           {errors.name && (
-            <p className="text-sm text-destructive">{errors.name}</p>
+            <p className="text-sm text-destructive">{errors.name.message}</p>
           )}
 
-          {errors.lastName && (
-            <p className="text-sm text-destructive">{errors.lastName}</p>
+          {errors.lastname && (
+            <p className="text-sm text-destructive">{errors.lastname.message}</p>
           )}
         </div>
 
@@ -151,13 +119,12 @@ export function RegisterForm() {
             type="email"
             autoComplete="email"
             placeholder="tu@correo.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            {...register("email")}
             aria-invalid={!!errors.email}
-            disabled={submitting}
+            disabled={isSubmitting}
           />
           {errors.email && (
-            <p className="text-sm text-destructive">{errors.email}</p>
+            <p className="text-sm text-destructive">{errors.email.message}</p>
           )}
         </div>
 
@@ -168,37 +135,43 @@ export function RegisterForm() {
             type="password"
             autoComplete="new-password"
             placeholder="Mínimo 8 caracteres"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            {...register("password")}
             aria-invalid={!!errors.password}
-            disabled={submitting}
+            disabled={isSubmitting}
           />
           {errors.password && (
-            <p className="text-sm text-destructive">{errors.password}</p>
+            <p className="text-sm text-destructive">{errors.password.message}</p>
           )}
         </div>
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="currency">Moneda principal</Label>
-          <Select
-            value={currency}
-            onValueChange={(v) => v && setCurrency(v)}
-          >
-            <SelectTrigger id="currency" disabled={submitting}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {CURRENCIES.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Controller
+            name='currency'
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                disabled={isSubmitting}
+                onValueChange={field.onChange}
+              >
+                <SelectTrigger id="currency" disabled={isSubmitting}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CURRENCIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
         </div>
 
-        <Button type="submit" className="mt-2 w-full" disabled={submitting}>
-          {submitting && <Loader2 className="size-4 animate-spin" />}
+        <Button type="submit" className="mt-2 w-full" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="size-4 animate-spin" />}
           Crear cuenta
         </Button>
       </form>
