@@ -23,6 +23,15 @@ export function useCategories(params: PageParams) {
   })
 }
 
+export function useCategory(id: number) {
+
+  return useQuery({
+    queryKey: [KEY, id],
+    queryFn: () => categoryService.single(id),
+    enabled: !!id
+  })
+}
+
 export function useCreateCategory() {
   const qc = useQueryClient()
   return useMutation({
