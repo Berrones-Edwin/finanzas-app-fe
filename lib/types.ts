@@ -40,6 +40,34 @@ export interface User {
   createdAt?: string
   updatedAt?: string
 }
+// ============================================
+// Budget
+// ============================================
+
+export interface BudgetCreateRequest {
+  categoryId: number;
+  month: string;
+  amount: number;
+  alertThreshold?: number;
+  notes?: string;
+}
+
+export interface BudgetUpdateRequest {
+  amount: number;
+  alertThreshold?: number;
+  notes?: string;
+}
+
+export interface BudgetResponse {
+  id: number;
+  category: BudgetCategoryResponse;
+  month: string;
+  plannedAmount: number;
+  spentAmount: number;
+  remainingAmount: number;
+  percentageUsed: number;
+  isAlertSent: boolean;
+}
 
 // ---------------------------------------------------------------------------
 // Accounts
@@ -93,51 +121,105 @@ export interface CategoryPayload {
   color: string
   icon?: string
 }
+export interface BudgetCategoryResponse {
+  name: string;
+  color: string;
+}
 
 // ---------------------------------------------------------------------------
 // Transactions
 // ---------------------------------------------------------------------------
 
-export interface Transaction {
-  id: number
-  categoryId: number
-  accountId: number
-  type: FlowTypeApi
-  amount: number
-  description?: string
-  date: string
-  createdAt?: string
+
+export interface TransactionCreatePayload {
+  accountId: number;
+  categoryId: number;
+  transactionType: FlowTypeApi;
+  amount: number;
+  description: string;
+  date: string;
 }
 
-export interface TransactionPayload {
-  categoryId: number
-  accountId: number
-  type: FlowTypeApi
-  amount: number
-  description?: string
-  date: string
+export interface TransactionAccountResponse {
+  id: number;
+  name: string;
+  accountType: AccountType;
+  currency: string;
+  color: string;
+  balance: number;
 }
 
+export interface TransactionCategoryResponse {
+  id: number;
+  name: string;
+  color: string;
+  categoryType: FlowTypeApi;
+}
+
+export interface TransactionResponse {
+  id: number;
+  category: TransactionCategoryResponse;
+  account: TransactionAccountResponse;
+  transactionType: FlowTypeApi;
+  amount: number;
+  description: string;
+  date: string;
+}
 // ---------------------------------------------------------------------------
 // Transfers
 // ---------------------------------------------------------------------------
-
-export interface Transfer {
-  id: number
-  fromAccountId: number
-  toAccountId: number
-  amount: number
-  description?: string
-  date: string
-  createdAt?: string
+export interface TransferCreatePayload {
+  fromAccount: number;
+  toAccount: number;
+  amount: number;
+  description?: string;
+  date: string;
 }
 
-export interface TransferPayload {
-  fromAccountId: number
-  toAccountId: number
-  amount: number
-  description?: string
-  date: string
+export interface TransferAccountResponse {
+  id: number;
+  name: string;
+  color: string;
+  type: AccountType;
+}
+
+export interface TransferResponse {
+  id: number;
+  amount: number;
+  description: string;
+  date: string;
+  fromAccount: TransferAccountResponse;
+  toAccount: TransferAccountResponse;
+}
+
+// ============================================
+// Dashboard
+// ============================================
+
+export interface DashboardSummaryResponse {
+  income: number;
+  expensess: number;
+  balance: number;
+  savingsRate: number;
+}
+
+export interface DashboardTrendsResponse {
+  yearmonth: string;
+  month: string;
+  income: number;
+  expense: number;
+}
+
+export interface DashboardByCategoryResponse {
+  categoryId: number;
+  categoryName: string;
+  amount: number;
+}
+
+export interface DashboardByAccountResponse {
+  accountId: number;
+  accountName: string;
+  amount: number;
 }
 
 // ---------------------------------------------------------------------------
