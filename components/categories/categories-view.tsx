@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { PageHeader } from "@/components/layout/page-header"
@@ -130,7 +131,14 @@ export function CategoriesView() {
             {!isLoading &&
               categories.map((cat) => (
                 <TableRow key={cat.id}>
-                  <TableCell className="font-medium">{cat.name}</TableCell>
+                  <TableCell>
+                    <Link
+                      href={`/categories/${cat.id}`}
+                      className="font-medium transition-colors hover:text-primary hover:underline"
+                    >
+                      {cat.name}
+                    </Link>
+                  </TableCell>
                   <TableCell>
                     <Badge
                       variant={
