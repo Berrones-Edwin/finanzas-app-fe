@@ -17,6 +17,10 @@ export const categoryService = {
     })
     return data
   },
+  async single(id: number): Promise<Category> {
+    const { data } = await api.get<Category>(`/categories/${id}`)
+    return data
+  },
 
   async create(payload: CategoryPayload): Promise<Category> {
     const { data } = await api.post<Category>("/categories", payload)

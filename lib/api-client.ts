@@ -54,7 +54,7 @@ async function refreshAccessToken(): Promise<string> {
     { headers: { "Content-Type": "application/json" } },
   )
   tokenStorage.set(data)
-  return data.accessToken
+  return data.token
 }
 
 api.interceptors.response.use(
