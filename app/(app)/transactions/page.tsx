@@ -1,14 +1,5 @@
-import { Receipt } from "lucide-react"
-import { ComingSoon } from "@/components/shared/coming-soon"
-
+import { TransactionsView } from "@/components/transactions/transactions-view"
 
 export default function TransactionsPage() {
-  return (
-    <ComingSoon
-      title="Transacciones"
-      description="Registra tus ingresos y gastos."
-      icon={Receipt}
-      note="El formulario de transacciones (cuenta, categoría, tipo y monto) se conecta a /api/transactions y se construirá en el módulo de flujos financieros."
-    />
-  )
+  return <TransactionsView />
 }
