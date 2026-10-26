@@ -47,6 +47,15 @@ export const categorySchema = z.object({
   type:z.enum(["INCOME","EXPENSE"])
 })
 
+export const transactionSchema = z.object({
+  accountId: z.number({ error: "Selecciona una cuenta" }).int().positive({ error: "Selecciona una cuenta" }),
+  categoryId: z.number({ error: "Selecciona una categoría" }).int().positive({ error: "Selecciona una categoría" }),
+  transactionType: z.enum(["INCOME", "EXPENSE"]),
+  amount: z.number({ error: "Ingresa un monto válido" }).positive({ error: "El monto debe ser mayor que cero" }),
+  description: z.string().trim().min(1, { error: "Agrega una descripción" }).max(255, { error: "Máximo 255 caracteres" }),
+  date: z.string().min(1, { error: "Selecciona una fecha" }),
+})
+
 
 export function extractErrors(
   result: {
