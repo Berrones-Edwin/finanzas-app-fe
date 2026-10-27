@@ -222,6 +222,39 @@ export interface DashboardByAccountResponse {
   amount: number;
 }
 
+
+
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+export type NotificationType = "BUDGET_THRESHOLD_REACHED"
+export type NotificationStatus = "PENDING" | "SENT" | "FAILED"
+
+export interface Notification {
+  id: number
+  type: NotificationType
+  message: string
+  status: NotificationStatus
+  attempts: number
+  sentAt?: string | null
+  readAt?: string | null
+  nextAttemptAt?: string | null
+  createdAt?: string
+  updatedAt?: string
+  deletedAt?: string | null
+  budgetId?: number | null
+}
+
+export interface UnreadCountResponse {
+  count: number
+}
+
+export interface NotificationFilterParams extends PageParams {
+  unread?: boolean
+  type?: NotificationType
+}
+
 // ---------------------------------------------------------------------------
 // Generic pagination wrapper used across list endpoints
 // ---------------------------------------------------------------------------

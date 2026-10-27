@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 import {
   ArrowLeftRight,
+  Bell,
   LayoutDashboard,
   ListTree,
   LogOut,
@@ -16,9 +17,12 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/components/providers/auth-provider"
 import { getApiErrorMessage } from "@/lib/api-client"
+import { useUnreadCount } from '@/lib/hooks/use-notifications'
+import { NotificationsDropdown } from '../notifications/notifications-dropdown'
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -27,6 +31,7 @@ const NAV = [
   { href: "/transactions", label: "Transacciones", icon: Receipt },
   { href: "/transfers", label: "Transferencias", icon: ArrowLeftRight },
   { href: "/budgets", label: "Presupuestos", icon: PiggyBank },
+  { href: "/notifications", label: "Notifications", icon: Bell }
 ] as const
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -34,6 +39,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { user, logout } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { data: unread } = useUnreadCount()
+  const unReadCount = unread?.count ?? 0
 
   async function handleLogout() {
     try {
@@ -57,6 +64,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <nav className="flex flex-1 flex-col gap-1 px-3">
       {NAV.map(({ href, label, icon: Icon }) => {
         const active = pathname === href || pathname.startsWith(`${href}/`)
+        const showBadge = href === "/notifications" && unReadCount > 0
         return (
           <Link
             key={href}
@@ -70,7 +78,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )}
           >
             <Icon className="size-4 shrink-0" aria-hidden="true" />
-            {label}
+            <span className='flex-1'>{label}</span>
+            {
+              showBadge && (
+                <Badge
+                  variant="destructive"
+                  className="h-5 min-w-5 justify-center px-1 text-xs"
+                >
+                  {unReadCount > 99 ? "99+" : unReadCount}
+                </Badge>
+              )
+            }
           </Link>
         )
       })}
@@ -144,6 +162,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Menu className="size-5" />
           </Button>
           <div className="ml-auto flex items-center gap-3">
+            <NotificationsDropdown />
             <div className="hidden text-right sm:block">
               <p className="text-sm font-medium leading-tight">{user?.fisrtName}</p>
               <p className="text-xs text-muted-foreground">{user?.currency}</p>
