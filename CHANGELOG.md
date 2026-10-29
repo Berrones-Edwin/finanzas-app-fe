@@ -6,3 +6,5 @@
 - Consultas de tendencias mensuales, gastos por categoría y distribución por cuenta.
 - Filtros compartidos por rango de fechas en todos los indicadores del dashboard.
 - Gráficos interactivos con Recharts.
+- Módulo de presupuestos: listado con filtros por mes, año y categoría, alta, edición y eliminación de presupuestos.
+- Indicador de umbral de alerta y notas por presupuesto.

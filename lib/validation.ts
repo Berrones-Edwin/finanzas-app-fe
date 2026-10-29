@@ -55,7 +55,25 @@ export const transactionSchema = z.object({
   description: z.string().trim().min(1, { error: "Agrega una descripción" }).max(255, { error: "Máximo 255 caracteres" }),
   date: z.string().min(1, { error: "Selecciona una fecha" }),
 })
+export const budgetCreateSchema = z.object({
+  categoryId: z.number({ error: "Selecciona una categoría" }).int().positive({ error: "Selecciona una categoría" }),
+  month: z.string().regex(/^\d{4}-\d{2}$/, { error: "Selecciona un mes válido" }),
+  amount: z.number({ error: "Ingresa un monto válido" })
+    .positive({ error: "El monto debe ser mayor que cero" })
+    .multipleOf(0.01, { error: "Máximo 2 decimales" }),
+  alertThreshold: z.number().int().min(1, { error: "Mínimo 1%" }).max(100, { error: "Máximo 100%" }).optional(),
+  notes: z.string().trim().max(100, { error: "Máximo 100 caracteres" })
+    .refine((value) => value.length === 0 || value.length >= 4, { error: "Mínimo 4 caracteres" })
+    .optional(),
+})
 
+export const budgetUpdateSchema = z.object({
+  amount: z.number({ error: "Ingresa un monto válido" })
+    .positive({ error: "El monto debe ser mayor que cero" })
+    .multipleOf(0.01, { error: "Máximo 2 decimales" }),
+  alertThreshold: z.number().int().min(1, { error: "Mínimo 1%" }).max(100, { error: "Máximo 100%" }).optional(),
+  notes: z.string().trim().max(100, { error: "Máximo 100 caracteres" }).optional(),
+})
 
 export function extractErrors(
   result: {

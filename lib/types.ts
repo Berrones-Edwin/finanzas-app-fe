@@ -67,6 +67,13 @@ export interface BudgetResponse {
   remainingAmount: number;
   percentageUsed: number;
   isAlertSent: boolean;
+  alertThreshold?: number | null;
+}
+
+export interface BudgetListParams extends PageParams {
+  year?: number;
+  month?: number;
+  categoryId?: number;
 }
 
 // ---------------------------------------------------------------------------
