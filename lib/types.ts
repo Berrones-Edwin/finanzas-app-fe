@@ -88,6 +88,7 @@ export interface Account {
   balance?: number
   color: string
   isActive: boolean
+  active: boolean
   createdAt?: string
 
 }
@@ -197,6 +198,12 @@ export interface TransferResponse {
   date: string;
   fromAccount: TransferAccountResponse;
   toAccount: TransferAccountResponse;
+}
+
+export interface TransferFilterParams extends PageParams {
+  accountId?: number;
+  start?: string;
+  end?: string;
 }
 
 // ============================================

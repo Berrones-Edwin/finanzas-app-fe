@@ -55,6 +55,20 @@ export const transactionSchema = z.object({
   description: z.string().trim().min(1, { error: "Agrega una descripción" }).max(255, { error: "Máximo 255 caracteres" }),
   date: z.string().min(1, { error: "Selecciona una fecha" }),
 })
+
+export const transferSchema = z.object({
+  fromAccount: z.number({ error: "Selecciona la cuenta origen" }).int().positive({ error: "Selecciona la cuenta origen" }),
+  toAccount: z.number({ error: "Selecciona la cuenta destino" }).int().positive({ error: "Selecciona la cuenta destino" }),
+  amount: z.number({ error: "Ingresa un monto válido" })
+    .positive({ error: "El monto debe ser mayor que cero" })
+    .multipleOf(0.01, { error: "Máximo 2 decimales" }),
+  description: z.string().trim().min(4, { error: "Mínimo 4 caracteres" }).max(100, { error: "Máximo 100 caracteres" }),
+  date: z.string().min(1, { error: "Selecciona una fecha" }),
+}).refine((value) => value.fromAccount !== value.toAccount, {
+  message: "Selecciona una cuenta destino distinta",
+  path: ["toAccount"],
+})
+
 export const budgetCreateSchema = z.object({
   categoryId: z.number({ error: "Selecciona una categoría" }).int().positive({ error: "Selecciona una categoría" }),
   month: z.string().regex(/^\d{4}-\d{2}$/, { error: "Selecciona un mes válido" }),
