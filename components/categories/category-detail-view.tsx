@@ -75,27 +75,21 @@ export function CategoryDetailView() {
   const [pageBudgets, setPageBudgets] = useState(0)
   const [month, setMonth] = useState("ALL")
   const [year, setYear] = useState("ALL")
-  const { data: budgets, isLoading: isLoadingBudgets, error: errorBudget, isError: isErrorBudget } = useBudgets(
-    {
-      page: pageBudgets,
-      size: PAGE_SIZE
-    },
-    Number(params.id),
-    month === "ALL" ? undefined : Number(month),
-    year === "ALL" ? undefined : Number(year),
-  )
+  const { data: budgets, isLoading: isLoadingBudgets, error: errorBudget, isError: isErrorBudget } = useBudgets({
+    page: pageBudgets,
+    size: PAGE_SIZE,
+    categoryId: Number(params.id),
+    month: month === "ALL" ? undefined : Number(month),
+    year: year === "ALL" ? undefined : Number(year),
+  })
 
   const years = useMemo(() => {
-    const allYears = budgets?.content.map(y => new Date(y.month).getFullYear());
-    const removeDuplicates = [... new Set(allYears)]
-    return removeDuplicates;
-
-  }, [])
-
+    const allYears = budgets?.content.map((budget) => new Date(budget.month).getFullYear()) ?? []
+    return [...new Set(allYears)]
+  }, [budgets])
 
   function handleBudgetMonth(value: string | null) {
     setMonth(value ?? "ALL")
-    console.log({ value })
     setPageBudgets(0)
   }
   function handleBudgetYearChange(value: string | null) {
@@ -450,7 +444,7 @@ export function CategoryDetailView() {
               {
                 isErrorBudget && !isLoadingBudgets && (
                   <TableRow>
-                    <TableCell colSpan={4} className="py-10 text-center">
+                    <TableCell colSpan={6} className="py-10 text-center">
                       <p className="text-sm text-destructive">
                         {getApiErrorMessage(errorBudget)}
                       </p>
