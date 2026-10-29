@@ -8,3 +8,4 @@
 - Gráficos interactivos con Recharts.
 - Módulo de presupuestos: listado con filtros por mes, año y categoría, alta, edición y eliminación de presupuestos.
 - Indicador de umbral de alerta y notas por presupuesto.
+- Módulo de transferencias: listado con filtros por cuenta y rango de fechas, alta de transferencias entre cuentas y detalle de cada movimiento.
