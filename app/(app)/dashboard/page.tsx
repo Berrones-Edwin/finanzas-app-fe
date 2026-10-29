@@ -2,15 +2,16 @@
 
 import Link from "next/link"
 import { ListTree, Wallet } from "lucide-react"
+
 import { PageHeader } from "@/components/layout/page-header"
 import { useAuth } from "@/components/providers/auth-provider"
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { DashboardView } from '@/components/dashboard/dashboard-view'
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -21,8 +22,7 @@ export default function DashboardPage() {
         title={`Hola, ${user?.fisrtName?.split(" ")[0] ?? ""}`}
         description="Este es el resumen de tu actividad financiera."
       />
-
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <Link href="/accounts">
           <Card className="transition-colors hover:border-primary">
             <CardHeader>
@@ -59,17 +59,8 @@ export default function DashboardPage() {
           </Card>
         </Link>
       </div>
-
-      <Card className="mt-4">
-        <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          Los gráficos analíticos del dashboard (resumen del mes, gastos por
-          categoría y tendencias) se conectarán a los endpoints{" "}
-          <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
-            /api/dashboard/*
-          </code>{" "}
-          en el siguiente módulo.
-        </CardContent>
-      </Card>
+      <br />
+      <DashboardView />
     </>
   )
 }
