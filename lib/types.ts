@@ -198,7 +198,7 @@ export interface TransferResponse {
 
 export interface DashboardSummaryResponse {
   income: number;
-  expensess: number;
+  expenses: number;
   balance: number;
   savingsRate: number;
 }
